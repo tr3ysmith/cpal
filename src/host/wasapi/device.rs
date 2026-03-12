@@ -557,6 +557,7 @@ impl Device {
                             channels: format.channels,
                             sample_rate,
                             buffer_size: BufferSize::Default,
+                            raw_mode: false,
                         },
                         sample_format,
                     ) {
@@ -682,6 +683,22 @@ impl Device {
             // will return `AUDCLNT_E_BUFFER_SIZE_ERROR` if the buffer size is not supported.
             let buffer_duration = buffer_size_to_duration(&config.buffer_size, config.sample_rate);
 
+            // When raw mode is requested, ask WASAPI to bypass system-level
+            // audio signal processing (e.g. enhancements) for this stream.
+            // Must be called before Initialize. Best-effort: silently ignored
+            // if the OS or driver does not support raw streams.
+            if config.raw_mode {
+                if let Ok(audio_client2) = audio_client.cast::<Audio::IAudioClient2>() {
+                    let props = Audio::AudioClientProperties {
+                        cbSize: std::mem::size_of::<Audio::AudioClientProperties>() as u32,
+                        bIsOffload: false.into(),
+                        eCategory: Audio::AudioCategory_Other,
+                        Options: Audio::AUDCLNT_STREAMOPTIONS_RAW,
+                    };
+                    let _ = audio_client2.SetClientProperties(&props);
+                }
+            }
+
             let mut stream_flags = DEFAULT_FLAGS;
 
             if self.data_flow() == Audio::eRender {
@@ -797,6 +814,22 @@ impl Device {
             // Note: Buffer size validation is not needed here - `IAudioClient::Initialize`
             // will return `AUDCLNT_E_BUFFER_SIZE_ERROR` if the buffer size is not supported.
             let buffer_duration = buffer_size_to_duration(&config.buffer_size, config.sample_rate);
+
+            // When raw mode is requested, ask WASAPI to bypass system-level
+            // audio signal processing (e.g. enhancements) for this stream.
+            // Must be called before Initialize. Best-effort: silently ignored
+            // if the OS or driver does not support raw streams.
+            if config.raw_mode {
+                if let Ok(audio_client2) = audio_client.cast::<Audio::IAudioClient2>() {
+                    let props = Audio::AudioClientProperties {
+                        cbSize: std::mem::size_of::<Audio::AudioClientProperties>() as u32,
+                        bIsOffload: false.into(),
+                        eCategory: Audio::AudioCategory_Other,
+                        Options: Audio::AUDCLNT_STREAMOPTIONS_RAW,
+                    };
+                    let _ = audio_client2.SetClientProperties(&props);
+                }
+            }
 
             // Computing the format and initializing the device.
             let waveformatex = {

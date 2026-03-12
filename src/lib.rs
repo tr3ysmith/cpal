@@ -398,6 +398,10 @@ pub struct StreamConfig {
     pub channels: ChannelCount,
     pub sample_rate: SampleRate,
     pub buffer_size: BufferSize,
+    /// When `true`, request a raw / unprocessed audio stream that bypasses
+    /// system-level signal processing (e.g. Windows audio enhancements).
+    /// Currently only effective on WASAPI; ignored on other platforms.
+    pub raw_mode: bool,
 }
 
 /// Describes the minimum and maximum supported buffer size for the device
@@ -566,6 +570,7 @@ impl SupportedStreamConfig {
             channels: self.channels,
             sample_rate: self.sample_rate,
             buffer_size: BufferSize::Default,
+            raw_mode: false,
         }
     }
 }
