@@ -695,7 +695,12 @@ impl Device {
                         eCategory: Audio::AudioCategory_Other,
                         Options: Audio::AUDCLNT_STREAMOPTIONS_RAW,
                     };
-                    let _ = audio_client2.SetClientProperties(&props);
+                    match audio_client2.SetClientProperties(&props) {
+                        Ok(()) => eprintln!("[cpal] WASAPI raw mode enabled successfully (input)"),
+                        Err(e) => eprintln!("[cpal] WASAPI raw mode failed (input): {e}"),
+                    }
+                } else {
+                    eprintln!("[cpal] WASAPI raw mode requested but IAudioClient2 not available (input)");
                 }
             }
 
@@ -827,7 +832,12 @@ impl Device {
                         eCategory: Audio::AudioCategory_Other,
                         Options: Audio::AUDCLNT_STREAMOPTIONS_RAW,
                     };
-                    let _ = audio_client2.SetClientProperties(&props);
+                    match audio_client2.SetClientProperties(&props) {
+                        Ok(()) => eprintln!("[cpal] WASAPI raw mode enabled successfully (output)"),
+                        Err(e) => eprintln!("[cpal] WASAPI raw mode failed (output): {e}"),
+                    }
+                } else {
+                    eprintln!("[cpal] WASAPI raw mode requested but IAudioClient2 not available (output)");
                 }
             }
 
